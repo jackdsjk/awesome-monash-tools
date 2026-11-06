@@ -1,0 +1,55 @@
+{
+  "name": "awesome-monash-tools",
+  "version": "0.1.0",
+  "description": "Unofficial MCP servers for the tools Monash students actually use: Ed, Moodle, Gmail and OnTrack.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "awesome-monash": "./dist/cli.js",
+    "awesome-monash-ed": "./dist/ed/server.js",
+    "awesome-monash-moodle": "./dist/moodle/server.js",
+    "awesome-monash-gmail": "./dist/gmail/server.js",
+    "awesome-monash-ontrack": "./dist/ontrack/server.js",
+    "awesome-monash-all": "./dist/all.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "monash",
+    "edstem",
+    "moodle",
+    "ontrack",
+    "gmail",
+    "claude",
+    "cursor"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs",
+    "check": "tsc -p tsconfig.json --noEmit && vitest run",
+    "prepublishOnly": "npm run check && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "node-html-parser": "^9.0.5",
+    "playwright-core": "^1.64.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
