@@ -2,6 +2,8 @@
 
 Every source authenticates differently because every Monash service does. This page explains what each login actually captures, where it is stored, and how to recover when it expires.
 
+**Language:** **English** · [中文](auth.zh-CN.md)
+
 ## Where credentials live
 
 | Item | Path |

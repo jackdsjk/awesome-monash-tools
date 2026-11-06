@@ -1,7 +1,7 @@
 {
   "name": "awesome-monash-tools",
   "version": "0.1.0",
-  "description": "Unofficial MCP servers for the tools Monash students actually use: Ed, Moodle, Gmail and OnTrack.",
+  "description": "Agent-native MCP servers for Monash University: Ed, Moodle, Gmail and OnTrack as 22 read-only tools.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -19,7 +19,9 @@
     "dist",
     "docs",
     "README.md",
-    "LICENSE"
+    "README.zh-CN.md",
+    "LICENSE",
+    "llms.txt"
   ],
   "keywords": [
     "mcp",

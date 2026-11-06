@@ -1,0 +1,51 @@
+# Awesome Monash Tools
+
+> Agent-native MCP servers for Monash University. Ed, Moodle, Gmail and OnTrack, exposed as 22 read-only tools for Claude Code, Cursor, Codex, DeepSeek Harness and any MCP host.
+
+## What it is
+
+- Four stdio MCP servers (`ed`, `moodle`, `gmail`, `ontrack`) plus one combined server (`all`).
+- A CLI for authentication: `awesome-monash login <source>`, `status`, `serve`.
+- Read-only by construction: no submit, no post, no send, no delete.
+- Local-only: credentials in `~/.config/awesome-monash-tools/credentials.json` (0600), no server, no telemetry.
+
+## Who it is for
+
+AI agents answering questions about a Monash student's own account: deadlines, Ed discussions, tutor feedback on FIT tasks, and official email.
+
+## Docs
+
+- [README (English)](https://github.com/jackdsjk/awesome-monash-tools/blob/main/README.md)
+- [README (中文)](https://github.com/jackdsjk/awesome-monash-tools/blob/main/README.zh-CN.md)
+- [Tool reference (English)](https://github.com/jackdsjk/awesome-monash-tools/blob/main/docs/tools.md)
+- [Tool reference (中文)](https://github.com/jackdsjk/awesome-monash-tools/blob/main/docs/tools.zh-CN.md)
+- [Authentication guide (English)](https://github.com/jackdsjk/awesome-monash-tools/blob/main/docs/auth.md)
+- [Authentication guide (中文)](https://github.com/jackdsjk/awesome-monash-tools/blob/main/docs/auth.zh-CN.md)
+
+## Install
+
+```bash
+git clone https://github.com/jackdsjk/awesome-monash-tools.git
+cd awesome-monash-tools
+npm install
+npm run build
+npm link
+awesome-monash login ed
+awesome-monash status
+```
+
+## MCP entry points
+
+| Server | Command |
+|---|---|
+| All sources | `awesome-monash serve all` |
+| Ed | `awesome-monash serve ed` |
+| Moodle | `awesome-monash serve moodle` |
+| Gmail | `awesome-monash serve gmail` |
+| OnTrack | `awesome-monash serve ontrack` |
+
+## Constraints
+
+- Unofficial, not affiliated with Monash University.
+- Node.js 20.11+; Google Chrome only for the two SSO logins.
+- No write access, no remote service, no credential sharing.

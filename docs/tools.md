@@ -2,6 +2,8 @@
 
 All tools return one JSON text block. Errors set `isError: true` and include the next step, for example:
 
+**Language:** **English** · [中文](tools.zh-CN.md)
+
 ```
 Ed is not connected.
 
