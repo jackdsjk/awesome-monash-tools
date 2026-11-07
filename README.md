@@ -6,6 +6,7 @@
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 [![CI](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/awesome-monash-tools.svg)](https://www.npmjs.com/package/awesome-monash-tools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-stdio-6B4FBB)](https://modelcontextprotocol.io)
 [![Tools](https://img.shields.io/badge/tools-22-blue)](#-tool-catalogue)
@@ -107,36 +108,36 @@ Because everything is scoped to **your own account**, the answers are yours: you
 Requires **Node.js 20.11+** and **Google Chrome** (only for the two SSO logins).
 
 ```bash
-# Until the npm release lands, install from source (30 seconds):
-git clone https://github.com/jackdsjk/awesome-monash-tools.git
-cd awesome-monash-tools
-npm install
-npm run build
-npm link                     # exposes the `awesome-monash` command
+# Nothing to install: npx pulls the published package.
+npx -y awesome-monash-tools@latest login ed
+npx -y awesome-monash-tools@latest login moodle
+npx -y awesome-monash-tools@latest login ontrack
+npx -y awesome-monash-tools@latest login gmail --client-id <id> --client-secret <secret>
 
-# Connect the sources you actually use.
+npx -y awesome-monash-tools@latest status
+npx -y awesome-monash-tools@latest serve all
+```
+
+Prefer a short command? Install it once and drop the `npx ...` prefix:
+
+```bash
+npm install -g awesome-monash-tools
+
 awesome-monash login ed
-awesome-monash login moodle
-awesome-monash login ontrack
-awesome-monash login gmail --client-id <id> --client-secret <secret>
-
-# See what is connected.
 awesome-monash status
-
-# Start a server.
 awesome-monash serve all
 ```
 
 `login moodle` and `login ontrack` open a Chrome window: finish the normal Monash SSO login, wait for the dashboard, and the session is saved automatically. Nothing is typed into this tool.
 
-> After the npm release: `npx -y awesome-monash-tools@latest <command>` works identically.
+> Working on the code instead? `git clone` the repo, then `npm install && npm run build && npm link`.
 
 ## 🔌 MCP configuration
 
 **Claude Code**
 
 ```bash
-claude mcp add monash -- awesome-monash serve all
+claude mcp add monash -- npx -y awesome-monash-tools@latest serve all
 ```
 
 **Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`)
@@ -145,8 +146,8 @@ claude mcp add monash -- awesome-monash serve all
 {
   "mcpServers": {
     "monash": {
-      "command": "awesome-monash",
-      "args": ["serve", "all"]
+      "command": "npx",
+      "args": ["-y", "awesome-monash-tools@latest", "serve", "all"]
     }
   }
 }
@@ -157,10 +158,10 @@ Prefer one server per source (smaller tool list, clearer permissions):
 ```json
 {
   "mcpServers": {
-    "ed":       { "command": "awesome-monash", "args": ["serve", "ed"] },
-    "moodle":   { "command": "awesome-monash", "args": ["serve", "moodle"] },
-    "gmail":    { "command": "awesome-monash", "args": ["serve", "gmail"] },
-    "ontrack":  { "command": "awesome-monash", "args": ["serve", "ontrack"] }
+    "ed":       { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ed"] },
+    "moodle":   { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "moodle"] },
+    "gmail":    { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "gmail"] },
+    "ontrack":  { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ontrack"] }
   }
 }
 ```
@@ -171,8 +172,8 @@ Prefer one server per source (smaller tool list, clearer permissions):
 
 ```toml
 [mcp_servers.monash]
-command = "awesome-monash"
-args = ["serve", "all"]
+command = "npx"
+args = ["-y", "awesome-monash-tools@latest", "serve", "all"]
 ```
 
 ## 🧰 Tool catalogue

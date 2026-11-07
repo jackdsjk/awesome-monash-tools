@@ -6,6 +6,7 @@
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 [![CI](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/awesome-monash-tools.svg)](https://www.npmjs.com/package/awesome-monash-tools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-stdio-6B4FBB)](https://modelcontextprotocol.io)
 [![Tools](https://img.shields.io/badge/tools-22-blue)](#-工具目录)
@@ -107,36 +108,36 @@
 需要 **Node.js 20.11+** 和 **Google Chrome**（只有两个 SSO 登录会用到）。
 
 ```bash
-# npm 版本发布前，先从源码安装（30 秒）：
-git clone https://github.com/jackdsjk/awesome-monash-tools.git
-cd awesome-monash-tools
-npm install
-npm run build
-npm link                     # 提供 `awesome-monash` 命令
+# 不用安装：npx 直接从 npm 拉取
+npx -y awesome-monash-tools@latest login ed
+npx -y awesome-monash-tools@latest login moodle
+npx -y awesome-monash-tools@latest login ontrack
+npx -y awesome-monash-tools@latest login gmail --client-id <id> --client-secret <secret>
 
-# 连接你实际在用的来源
+npx -y awesome-monash-tools@latest status
+npx -y awesome-monash-tools@latest serve all
+```
+
+嫌命令长？装一次，之后就能用短命令：
+
+```bash
+npm install -g awesome-monash-tools
+
 awesome-monash login ed
-awesome-monash login moodle
-awesome-monash login ontrack
-awesome-monash login gmail --client-id <id> --client-secret <secret>
-
-# 查看连接状态
 awesome-monash status
-
-# 启动 server
 awesome-monash serve all
 ```
 
 `login moodle` / `login ontrack` 会打开 Chrome 窗口：正常完成 Monash SSO 登录、等仪表盘加载出来，会话就自动保存了。**这个工具不会让你输入密码。**
 
-> npm 版本发布后，`npx -y awesome-monash-tools@latest <command>` 等价可用。
+> 想改代码？`git clone` 仓库后 `npm install && npm run build && npm link`。
 
 ## 🔌 MCP 配置
 
 **Claude Code**
 
 ```bash
-claude mcp add monash -- awesome-monash serve all
+claude mcp add monash -- npx -y awesome-monash-tools@latest serve all
 ```
 
 **Claude Desktop**（`~/Library/Application Support/Claude/claude_desktop_config.json`）
@@ -145,8 +146,8 @@ claude mcp add monash -- awesome-monash serve all
 {
   "mcpServers": {
     "monash": {
-      "command": "awesome-monash",
-      "args": ["serve", "all"]
+      "command": "npx",
+      "args": ["-y", "awesome-monash-tools@latest", "serve", "all"]
     }
   }
 }
@@ -157,10 +158,10 @@ claude mcp add monash -- awesome-monash serve all
 ```json
 {
   "mcpServers": {
-    "ed":       { "command": "awesome-monash", "args": ["serve", "ed"] },
-    "moodle":   { "command": "awesome-monash", "args": ["serve", "moodle"] },
-    "gmail":    { "command": "awesome-monash", "args": ["serve", "gmail"] },
-    "ontrack":  { "command": "awesome-monash", "args": ["serve", "ontrack"] }
+    "ed":       { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ed"] },
+    "moodle":   { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "moodle"] },
+    "gmail":    { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "gmail"] },
+    "ontrack":  { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ontrack"] }
   }
 }
 ```
@@ -171,8 +172,8 @@ claude mcp add monash -- awesome-monash serve all
 
 ```toml
 [mcp_servers.monash]
-command = "awesome-monash"
-args = ["serve", "all"]
+command = "npx"
+args = ["-y", "awesome-monash-tools@latest", "serve", "all"]
 ```
 
 ## 🧰 工具目录

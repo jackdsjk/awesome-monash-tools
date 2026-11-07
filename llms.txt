@@ -25,24 +25,21 @@ AI agents answering questions about a Monash student's own account: deadlines, E
 ## Install
 
 ```bash
-git clone https://github.com/jackdsjk/awesome-monash-tools.git
-cd awesome-monash-tools
-npm install
-npm run build
-npm link
-awesome-monash login ed
-awesome-monash status
+npx -y awesome-monash-tools@latest status
+npx -y awesome-monash-tools@latest login ed
 ```
+
+Or install once: `npm install -g awesome-monash-tools`.
 
 ## MCP entry points
 
 | Server | Command |
 |---|---|
-| All sources | `awesome-monash serve all` |
-| Ed | `awesome-monash serve ed` |
-| Moodle | `awesome-monash serve moodle` |
-| Gmail | `awesome-monash serve gmail` |
-| OnTrack | `awesome-monash serve ontrack` |
+| All sources | `npx -y awesome-monash-tools@latest serve all` |
+| Ed | `npx -y awesome-monash-tools@latest serve ed` |
+| Moodle | `npx -y awesome-monash-tools@latest serve moodle` |
+| Gmail | `npx -y awesome-monash-tools@latest serve gmail` |
+| OnTrack | `npx -y awesome-monash-tools@latest serve ontrack` |
 
 ## Constraints
 
