@@ -8,12 +8,12 @@
     "node": ">=20.11"
   },
   "bin": {
-    "awesome-monash": "./dist/cli.js",
-    "awesome-monash-ed": "./dist/ed/server.js",
-    "awesome-monash-moodle": "./dist/moodle/server.js",
-    "awesome-monash-gmail": "./dist/gmail/server.js",
-    "awesome-monash-ontrack": "./dist/ontrack/server.js",
-    "awesome-monash-all": "./dist/all.js"
+    "awesome-monash": "dist/cli.js",
+    "awesome-monash-ed": "dist/ed/server.js",
+    "awesome-monash-moodle": "dist/moodle/server.js",
+    "awesome-monash-gmail": "dist/gmail/server.js",
+    "awesome-monash-ontrack": "dist/ontrack/server.js",
+    "awesome-monash-all": "dist/all.js"
   },
   "files": [
     "dist",
