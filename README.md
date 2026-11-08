@@ -2,21 +2,21 @@
 
 # Awesome Monash Tools
 
-**Agent-native MCP servers for Monash University — Ed, Moodle, Gmail and OnTrack, exposed as 22 read-only tools your agent can call.**
+**Agent-native MCP servers for Monash University — Ed, Moodle, Gmail, OnTrack and the attendance portal, exposed as 25 tools your agent can call.**
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 [![CI](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/awesome-monash-tools.svg)](https://www.npmjs.com/package/awesome-monash-tools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-stdio-6B4FBB)](https://modelcontextprotocol.io)
-[![Tools](https://img.shields.io/badge/tools-22-blue)](#-tool-catalogue)
+[![Tools](https://img.shields.io/badge/tools-25-blue)](#-tool-catalogue)
 [![Agent-first](https://img.shields.io/badge/built%20for-agents-0A66C2)](#-built-for-agents-not-for-humans)
 
 **English** · [中文](README.zh-CN.md)
 
 </div>
 
-> Monash students work across four systems that never talk to each other: **Ed** for discussion, **Moodle** for deadlines and materials, **Gmail** for official mail, **OnTrack** for FIT task feedback. None of them offers a student-facing API. This repository turns all four into small, typed, read-only MCP tools so an agent can answer *"what is due, what did my tutor say, and what did I miss?"* with real data instead of guesses.
+> Monash students work across five systems that never talk to each other: **Ed** for discussion, **Moodle** for deadlines and materials, **Gmail** for official mail, **OnTrack** for FIT task feedback, and the **attendance portal** for workshop check-in. None of them offers a student-facing API. This repository turns them into small, typed MCP tools so an agent can answer *"what is due, what did my tutor say, what did I miss, and did I get marked present?"* with real data instead of guesses.
 
 > **Unofficial.** Not affiliated with Monash University, Ed, Moodle, Google or Doubtfire. Use your own account, at your own risk, and respect each service's terms.
 
@@ -32,7 +32,7 @@ This repository ships **no app, no dashboard and no chat UI**. The only interfac
 | **Descriptions written for models** | Each tool states when to use it, what it returns, and what the next step is. |
 | **Errors are instructions** | A dead session returns *"Moodle rejected the saved session. Run `awesome-monash login moodle`"* — not a stack trace. |
 | **Deterministic output** | Stable field names, ISO timestamps, nearest-first sorting. Nothing the model has to re-derive. |
-| **Read-only by construction** | No write path exists in the codebase. Every tool is annotated `readOnlyHint`. |
+| **One guarded write** | Everything is read-only except attendance check-in, which fills a code and submits only when `submit: true` is passed explicitly. |
 | **One credential, many calls** | Login is a CLI step; the agent never sees or asks for a password. |
 | **Local stdio only** | No server, no telemetry, no account to create. The host spawns a process. |
 
@@ -66,18 +66,18 @@ Existing tools stop halfway:
 - Scraping libraries return HTML. A model then burns context re-reading a Moodle theme.
 - Each service authenticates differently (API token, SSO cookie, OAuth, refresh cookie). Doing that per question is impossible.
 
-This project does the boring part once — **authentication, normalization, and error recovery** — and exposes the result as 22 MCP tools with consistent shapes. The agent does the thinking; the repository does the plumbing.
+This project does the boring part once — **authentication, normalization, and error recovery** — and exposes the result as 25 MCP tools with consistent shapes. The agent does the thinking; the repository does the plumbing.
 
-**What this is not:** not a Monash client, not a notification app, not a scraper you point at arbitrary URLs, and not a way to automate submissions. There is deliberately no write access.
+**What this is not:** not a Monash client, not a notification app, not a scraper you point at arbitrary URLs, and not a way to automate submissions. The only write is an attendance check-in the caller has to confirm.
 
 ## 📦 What's inside
 
 | Component | What you get |
 |---|---|
-| **4 MCP servers** | `ed`, `moodle`, `gmail`, `ontrack` — each independently runnable |
-| **1 combined server** | `all` — all 22 tools in one process |
+| **5 MCP servers** | `ed`, `moodle`, `gmail`, `ontrack`, `attendance` — each independently runnable |
+| **1 combined server** | `all` — all 25 tools in one process |
 | **1 CLI** | `awesome-monash login / logout / status / serve` |
-| **22 tools** | typed inputs, JSON output, actionable errors |
+| **25 tools** | typed inputs, JSON output, actionable errors |
 | **Docs** | [Auth guide](docs/auth.md) · [Tool reference](docs/tools.md) · [llms.txt](llms.txt) |
 
 | Server | Bin | Tools | Auth captured by `awesome-monash login` |
@@ -86,7 +86,8 @@ This project does the boring part once — **authentication, normalization, and 
 | Moodle | `awesome-monash-moodle` | 5 | Monash SSO cookie jar (Chrome, one login) |
 | Gmail | `awesome-monash-gmail` | 5 | Google OAuth, `gmail.readonly` only |
 | OnTrack | `awesome-monash-ontrack` | 5 | Monash SSO refresh cookie |
-| All | `awesome-monash-all` | 22 | whichever sources you connected |
+| Attendance | `awesome-monash-attendance` | 3 | Monash SSO cookies for `attendance.monash.edu.my` |
+| All | `awesome-monash-all` | 25 | whichever sources you connected |
 
 ## 🎯 What agents can do
 
@@ -97,21 +98,23 @@ Real questions, and the tools that answer them:
 | "What is due in the next 14 days, and which ones have I already submitted?" | `moodle_deadlines` with `checkSubmitted: true` |
 | "Summarize this week's Ed threads in FIT1045; skip anything already answered." | `ed_list_threads` → `ed_get_thread` |
 | "Did my tutor leave feedback on P1? Quote the part about the data model." | `ontrack_list_projects` → `ontrack_list_tasks` → `ontrack_task_comments` |
+| "I am in FIT1045 Workshop 3 and the code is ABC123 — mark me present." | `attendance_sessions` → `attendance_checkin` |
 | "Find the enrolment email from Monash and tell me the payment deadline." | `gmail_search_messages` → `gmail_get_message` |
 | "What's in week 8 of FIT1047, and is there a lab sheet?" | `moodle_list_courses` → `moodle_course_content` |
-| "Build my week: deadlines first, then unread Ed threads, then tutor feedback." | all four servers |
+| "Build my week: deadlines first, then unread Ed threads, then tutor feedback." | all five servers |
 
 Because everything is scoped to **your own account**, the answers are yours: your submissions, your feedback, your inbox. Nothing is shared or cached remotely.
 
 ## 🚀 Quick start
 
-Requires **Node.js 20.11+** and **Google Chrome** (only for the two SSO logins).
+Requires **Node.js 20.11+** and **Google Chrome** (only for the three SSO logins).
 
 ```bash
 # Nothing to install: npx pulls the published package.
 npx -y awesome-monash-tools@latest login ed
 npx -y awesome-monash-tools@latest login moodle
 npx -y awesome-monash-tools@latest login ontrack
+npx -y awesome-monash-tools@latest login attendance
 npx -y awesome-monash-tools@latest login gmail --client-id <id> --client-secret <secret>
 
 npx -y awesome-monash-tools@latest status
@@ -128,7 +131,7 @@ awesome-monash status
 awesome-monash serve all
 ```
 
-`login moodle` and `login ontrack` open a Chrome window: finish the normal Monash SSO login, wait for the dashboard, and the session is saved automatically. Nothing is typed into this tool.
+`login moodle`, `login ontrack` and `login attendance` open a Chrome window: finish the normal Monash SSO login, wait for the dashboard, and the session is saved automatically. Nothing is typed into this tool.
 
 > Working on the code instead? `git clone` the repo, then `npm install && npm run build && npm link`.
 
@@ -161,7 +164,8 @@ Prefer one server per source (smaller tool list, clearer permissions):
     "ed":       { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ed"] },
     "moodle":   { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "moodle"] },
     "gmail":    { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "gmail"] },
-    "ontrack":  { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ontrack"] }
+    "ontrack":  { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ontrack"] },
+    "attendance": { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "attendance"] }
   }
 }
 ```
@@ -222,13 +226,21 @@ Full parameters and return shapes: [docs/tools.md](docs/tools.md).
 | `ontrack_task_comments` | Tutor comments and grade rationale |
 | `ontrack_download` | Save a task sheet or submission PDF locally |
 
+### Attendance — workshop check-in
+
+| Tool | Description |
+|---|---|
+| `attendance_status` | Whether the saved attendance session still works |
+| `attendance_sessions` | Workshops/tutorials the portal lists, with their days |
+| `attendance_checkin` | Fill a code for one unit/session; submits only with `submit: true` |
+
 ## 🧱 Design principles
 
 1. **Normalize at the edge.** Moodle is scraped internally and returned as structured sections — the model never sees HTML.
 2. **One job per tool.** `moodle_deadlines` does deadlines; `moodle_submission_status` checks one submission. No mega-tools.
-3. **Verb + noun names, prefixed by source.** `ed_get_thread` is unambiguous in a 22-tool list.
+3. **Verb + noun names, prefixed by source.** `ed_get_thread` is unambiguous in a 25-tool list.
 4. **Fail with the fix.** Every `AmtError` carries a `hint`; the tool result includes the exact command to run.
-5. **Read-only by construction.** No write code path exists. `ontrack_download` writes a local file and is the only non-read-only annotation.
+5. **Read-only by default.** The only write is `attendance_checkin`, which fills a code and submits only with `submit: true`. `ontrack_download` writes a local file. Both are annotated as such.
 6. **Stable shapes.** Field names, ISO timestamps, deterministic ordering — agents can rely on them between calls.
 7. **Local and quiet.** stdio transport, no server component, no analytics, no remote cache.
 
@@ -238,7 +250,8 @@ Full parameters and return shapes: [docs/tools.md](docs/tools.md).
 - No password is ever entered into this tool. Moodle and OnTrack logins happen in a real Chrome window.
 - Gmail requests only `gmail.readonly`; revoke at <https://myaccount.google.com/permissions>.
 - No telemetry, no remote logging, no third-party service in the middle.
-- Output is sensitive by definition (grades, feedback, email). Treat transcripts accordingly.
+- Output is sensitive by definition (grades, feedback, email, attendance). Treat transcripts accordingly.
+- Attendance is the only write: it needs `attendance_checkin` with `submit: true`, and it is recorded against your student account.
 - Environment overrides exist for advanced users: `ED_API_TOKEN`, `MOODLE_COOKIE`, `ONTRACK_REFRESH_TOKEN`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 
 ## 🗂 Repository layout
@@ -269,7 +282,7 @@ The test suite uses a fake `fetch`; no real account is required to develop. See 
 
 ## 🤝 Contributing
 
-- **New tools:** keep them read-only, add a zod schema, annotate with `readOnlyHint`, and make the error hint actionable.
+- **New tools:** prefer read-only; any write must be explicit, annotated, and documented in both languages.
 - **New sources:** follow `src/ed/` (client → tools → server) and add a credential section in [docs/auth.md](docs/auth.md).
 - **Docs:** update both `README.md` and `README.zh-CN.md`, and both language versions of `docs/`.
 - Run `npm run check && npm run smoke` before opening a PR.

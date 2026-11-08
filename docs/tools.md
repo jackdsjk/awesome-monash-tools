@@ -175,13 +175,36 @@ Returns tutor comments: `id`, `type`, `comment`, `createdAt`, `authorId`, `autho
 
 Writes the artifact under `~/.config/awesome-monash-tools/downloads/` and returns `{ path, bytes, contentType }`. Filenames are sanitised; the path must be an API-relative path.
 
+## Attendance
+
+### `attendance_status`
+
+No parameters. Probes the saved attendance cookies and returns `{ connected, hint }`.
+
+### `attendance_sessions`
+
+No parameters. Returns `[{ course, session, days }]` — the workshops, tutorials and labs the portal lists for this account, with the day values they appear on.
+
+### `attendance_checkin`
+
+| Parameter | Type | Default | Notes |
+|---|---|---|---|
+| `course` | string | required | Unit code such as `FIT1045` |
+| `session` | string | required | Session label such as `Workshop 3` |
+| `code` | string | required | The code the lecturer showed in class |
+| `submit` | boolean | false | With `false` it only fills the field; with `true` it also submits and records attendance |
+
+Returns `{ status, course, session, message, entryUrl?, pageText? }` where status is `filled`, `submitted`, `inactive` (the code window is closed) or `not_found` (no matching entry link).
+
+`attendance_checkin` is the only tool in this package that writes to a remote service. Confirm the code and session with the user before passing `submit: true`.
+
 ## Tool annotations
 
 Every tool is annotated with MCP hints:
 
 | Tool | `readOnlyHint` | `openWorldHint` |
 |---|---|---|
-| All tools except `ontrack_download` | true | true |
-| `ontrack_download` | false | true |
+| `attendance_checkin`, `ontrack_download` | false | true |
+| everything else | true | true |
 
-No tool is destructive; hosts may still ask for confirmation based on the hints.
+No tool is destructive. `attendance_checkin` records attendance and `ontrack_download` writes a local file, so hosts may ask for confirmation based on the hints.

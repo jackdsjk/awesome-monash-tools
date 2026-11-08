@@ -29,6 +29,7 @@ const SOURCE_LABELS: Record<string, string> = {
   moodle: "Moodle",
   gmail: "Gmail",
   ontrack: "OnTrack",
+  attendance: "Attendance",
 };
 
 export function sourceLabel(source: string): string {

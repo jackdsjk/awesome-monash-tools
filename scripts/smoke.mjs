@@ -15,6 +15,7 @@ const ENTRIES = [
   ["moodle", "dist/moodle/server.js", "moodle_list_courses"],
   ["gmail", "dist/gmail/server.js", "gmail_profile"],
   ["ontrack", "dist/ontrack/server.js", "ontrack_list_projects"],
+  ["attendance", "dist/attendance/server.js", "attendance_sessions"],
   ["all", "dist/all.js", "moodle_deadlines"],
 ];
 

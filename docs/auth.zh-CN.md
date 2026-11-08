@@ -140,8 +140,35 @@ OnTrack（Doubtfire）会给登录后的网页存一个 `refresh_token` cookie�
 
 ---
 
+## Attendance
+
+Monash 的签到门户（`attendance.monash.edu.my`）是一个独立的 WebForms 站点，有自己的 SSO cookie：`StudentFedAuth`。
+
+`login attendance` 的过程：
+
+1. 打开持久 Chrome 配置（`profiles/attendance`）。
+2. 导航到 `https://attendance.monash.edu.my/student/`。
+3. 等你在窗口里完成 Monash SSO 登录。
+4. 出现 `StudentFedAuth` 后，抓取所有 `*.monash.edu.my` cookie。
+5. 用无头浏览器重新打开门户，只有 Units 页面真的能加载才会保存。
+
+说明：
+
+- 门户的 TLS 证书链不在 Node 自带的 CA 库里，所以每次签到调用都驱动真实 Chrome，而不是普通 `fetch`。
+- 会话和你浏览器里的是同一个；过期后所有签到工具都会提示重新登录。
+- `attendance_checkin` 只填 code，传 `submit: true` 才提交——这是本包唯一的写操作。
+
+排障：
+
+| 现象 | 原因 |
+|---|---|
+| 登录超时 | Units 页面没加载出来，或 SSO 开在了另一个窗口 |
+| `Attendance rejected the saved session` | `StudentFedAuth` 过期；重新登录 |
+| `Could not start Chrome` | 没装 Chrome；这个门户需要真实浏览器 |
+
 ## 明确不做的事
 
 - 不弹密码框，不转发凭据，不抓密码输入框。
 - 不把 token 写进日志、报错信息或 MCP 输出。
 - 不安装后台进程、守护进程或 LaunchAgent。
+- 签到是唯一的写入，并且必须传 `submit: true`。

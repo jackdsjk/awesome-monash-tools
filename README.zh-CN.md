@@ -2,21 +2,21 @@
 
 # Awesome Monash Tools
 
-**为 Monash 学生做的 Agent 原生 MCP 工具集：把 Ed、Moodle、Gmail、OnTrack 变成 22 个只读工具，交给你的 Agent 调用。**
+**为 Monash 学生做的 Agent 原生 MCP 工具集：把 Ed、Moodle、Gmail、OnTrack 和 Attendance 门户变成 25 个工具，交给你的 Agent 调用。**
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 [![CI](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jackdsjk/awesome-monash-tools/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/awesome-monash-tools.svg)](https://www.npmjs.com/package/awesome-monash-tools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-stdio-6B4FBB)](https://modelcontextprotocol.io)
-[![Tools](https://img.shields.io/badge/tools-22-blue)](#-工具目录)
+[![Tools](https://img.shields.io/badge/tools-25-blue)](#-工具目录)
 [![Agent-first](https://img.shields.io/badge/built%20for-agents-0A66C2)](#-这是给-agent-用的不是给人用的)
 
 [English](README.md) · **中文**
 
 </div>
 
-> Monash 学生的日常横跨四个互不相通的系统：**Ed** 讨论区、**Moodle** 截止日期与课件、**Gmail** 官方邮件、**OnTrack** FIT 任务反馈。这四个系统都没有面向学生的 API。本仓库把它们统一成一组小而明确的只读 MCP 工具，让 Agent 能基于真实数据回答「这周要交什么、tutor 说了什么、我漏了什么」。
+> Monash 学生的日常横跨五个互不相通的系统：**Ed** 讨论区、**Moodle** 截止日期与课件、**Gmail** 官方邮件、**OnTrack** FIT 任务反馈，以及 **Attendance 门户**的课堂签到。它们都没有面向学生的 API。本仓库把它们统一成一组小而明确的 MCP 工具，让 Agent 能基于真实数据回答「这周要交什么、tutor 说了什么、我漏了什么、我签到了吗」。
 
 > **非官方项目。** 与 Monash University、Ed、Moodle、Google、Doubtfire 均无隶属关系。请使用自己的账号，自担风险，并遵守各服务条款。
 
@@ -32,7 +32,7 @@
 | **工具描述按模型来写** | 每个工具都说明：什么时候用、返回什么、下一步做什么。 |
 | **报错即指令** | 会话过期时返回的是「Moodle 会话已失效，请运行 `awesome-monash login moodle`」，不是堆栈。 |
 | **输出确定** | 字段名稳定、时间统一 ISO、默认按时间排序，模型不需要二次推导。 |
-| **结构上只读** | 代码里不存在写入路径；每个工具都标注 `readOnlyHint`。 |
+| **只有一处写入** | 除签到外全部只读；`attendance_checkin` 只填 code，传 `submit: true` 才会真正提交。 |
 | **一次登录，多次调用** | 登录是 CLI 的一步；Agent 永远看不到、也不需要密码。 |
 | **纯本地 stdio** | 没有服务端、没有埋点、不用注册账号；宿主拉起一个进程即可。 |
 
@@ -66,18 +66,18 @@
 - 网页抓取库返回的是 HTML，模型得花大量上下文重新理解 Moodle 的主题结构。
 - 四个系统的认证方式完全不同：API token、SSO cookie、OAuth、refresh cookie。每问一个问题都重新认证一次，不可行。
 
-这个项目把最枯燥的部分一次做完——**认证、归一化、错误恢复**——然后把结果暴露成 22 个形状一致的 MCP 工具。思考交给 Agent，管道交给仓库。
+这个项目把最枯燥的部分一次做完——**认证、归一化、错误恢复**——然后把结果暴露成 25 个形状一致的 MCP 工具。思考交给 Agent，管道交给仓库。
 
-**它不是什么：** 不是 Monash 客户端，不是通知应用，不是可以随便指向任意 URL 的爬虫，也不是自动交作业的捷径。**这里刻意没有写权限。**
+**它不是什么：** 不是 Monash 客户端，不是通知应用，不是可以随便指向任意 URL 的爬虫，也不是自动交作业的捷径。**唯一的写入是签到，而且必须由调用方显式确认。**
 
 ## 📦 里面有什么
 
 | 组成 | 内容 |
 |---|---|
-| **4 个 MCP server** | `ed`、`moodle`、`gmail`、`ontrack`，各自独立运行 |
-| **1 个聚合 server** | `all`，22 个工具在同一个进程里 |
+| **5 个 MCP server** | `ed`、`moodle`、`gmail`、`ontrack`、`attendance`，各自独立运行 |
+| **1 个聚合 server** | `all`，25 个工具在同一个进程里 |
 | **1 个 CLI** | `awesome-monash login / logout / status / serve` |
-| **22 个工具** | 类型化入参、JSON 输出、可执行的报错 |
+| **25 个工具** | 类型化入参、JSON 输出、可执行的报错 |
 | **文档** | [认证指南](docs/auth.zh-CN.md) · [工具参考](docs/tools.zh-CN.md) · [llms.txt](llms.txt) |
 
 | Server | 可执行名 | 工具数 | `awesome-monash login` 抓取的凭据 |
@@ -86,7 +86,8 @@
 | Moodle | `awesome-monash-moodle` | 5 | Monash SSO cookie（Chrome 里登录一次） |
 | Gmail | `awesome-monash-gmail` | 5 | Google OAuth，仅 `gmail.readonly` |
 | OnTrack | `awesome-monash-ontrack` | 5 | Monash SSO refresh cookie |
-| All | `awesome-monash-all` | 22 | 你已连接的所有来源 |
+| Attendance | `awesome-monash-attendance` | 3 | `attendance.monash.edu.my` 的 Monash SSO cookie |
+| All | `awesome-monash-all` | 25 | 你已连接的所有来源 |
 
 ## 🎯 Agent 能做什么
 
@@ -97,21 +98,23 @@
 | 「未来 14 天有什么要交？哪些我已经交了？」 | `moodle_deadlines`（`checkSubmitted: true`） |
 | 「总结 FIT1045 这周的 Ed 帖子，已经被回答的跳过。」 | `ed_list_threads` → `ed_get_thread` |
 | 「Tutor 对 P1 留反馈了吗？把讲数据模型的那段原话给我。」 | `ontrack_list_projects` → `ontrack_list_tasks` → `ontrack_task_comments` |
+| 「我在 FIT1045 Workshop 3，code 是 ABC123，帮我签到。」 | `attendance_sessions` → `attendance_checkin` |
 | 「找出 Monash 发的选课邮件，告诉我缴费截止日。」 | `gmail_search_messages` → `gmail_get_message` |
 | 「FIT1047 第 8 周有什么？有 lab sheet 吗？」 | `moodle_list_courses` → `moodle_course_content` |
-| 「帮我排这周：先截止日期，再未读 Ed 帖，最后 tutor 反馈。」 | 四个 server 全用上 |
+| 「帮我排这周：先截止日期，再未读 Ed 帖，最后 tutor 反馈。」 | 五个 server 全用上 |
 
 因为一切都限定在**你自己的账号**内，答案也是你自己的：你的提交、你的反馈、你的收件箱。不会共享，也不会在远端缓存。
 
 ## 🚀 快速开始
 
-需要 **Node.js 20.11+** 和 **Google Chrome**（只有两个 SSO 登录会用到）。
+需要 **Node.js 20.11+** 和 **Google Chrome**（只有三个 SSO 登录会用到）。
 
 ```bash
 # 不用安装：npx 直接从 npm 拉取
 npx -y awesome-monash-tools@latest login ed
 npx -y awesome-monash-tools@latest login moodle
 npx -y awesome-monash-tools@latest login ontrack
+npx -y awesome-monash-tools@latest login attendance
 npx -y awesome-monash-tools@latest login gmail --client-id <id> --client-secret <secret>
 
 npx -y awesome-monash-tools@latest status
@@ -128,7 +131,7 @@ awesome-monash status
 awesome-monash serve all
 ```
 
-`login moodle` / `login ontrack` 会打开 Chrome 窗口：正常完成 Monash SSO 登录、等仪表盘加载出来，会话就自动保存了。**这个工具不会让你输入密码。**
+`login moodle` / `login ontrack` / `login attendance` 会打开 Chrome 窗口：正常完成 Monash SSO 登录、等仪表盘加载出来，会话就自动保存了。**这个工具不会让你输入密码。**
 
 > 想改代码？`git clone` 仓库后 `npm install && npm run build && npm link`。
 
@@ -161,7 +164,8 @@ claude mcp add monash -- npx -y awesome-monash-tools@latest serve all
     "ed":       { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ed"] },
     "moodle":   { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "moodle"] },
     "gmail":    { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "gmail"] },
-    "ontrack":  { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ontrack"] }
+    "ontrack":  { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "ontrack"] },
+    "attendance": { "command": "npx", "args": ["-y", "awesome-monash-tools@latest", "serve", "attendance"] }
   }
 }
 ```
@@ -222,13 +226,21 @@ args = ["-y", "awesome-monash-tools@latest", "serve", "all"]
 | `ontrack_task_comments` | tutor 评论与评分理由 |
 | `ontrack_download` | 把任务书或提交 PDF 存到本地 |
 
+### Attendance — 课堂签到
+
+| 工具 | 作用 |
+|---|---|
+| `attendance_status` | 保存的签到会话是否仍有效 |
+| `attendance_sessions` | 门户里列出的 workshop / tutorial 及其日期 |
+| `attendance_checkin` | 给某门课某个班次填 code；只有 `submit: true` 才提交 |
+
 ## 🧱 设计原则
 
 1. **在边缘做归一化。** Moodle 在内部被解析，对外只返回结构化章节——模型永远看不到 HTML。
 2. **一个工具只做一件事。** `moodle_deadlines` 只管截止日期，查单个提交状态用 `moodle_submission_status`。不做大杂烩。
-3. **动词 + 名词，带来源前缀。** 在 22 个工具里，`ed_get_thread` 没有歧义。
+3. **动词 + 名词，带来源前缀。** 在 25 个工具里，`ed_get_thread` 没有歧义。
 4. **报错要给解法。** 每个 `AmtError` 都带 `hint`，工具结果里直接给出该跑的命令。
-5. **结构上只读。** 代码里没有写入路径；`ontrack_download` 只写本地文件，是唯一非只读标注。
+5. **默认只读。** 唯一的写入是 `attendance_checkin`：只填 code，传 `submit: true` 才提交；`ontrack_download` 只写本地文件。两者都有明确标注。
 6. **形状稳定。** 字段名、ISO 时间、确定的排序——Agent 可以在多次调用之间依赖它们。
 7. **本地、安静。** stdio 传输，没有服务端组件、没有分析、没有远端缓存。
 
@@ -238,7 +250,8 @@ args = ["-y", "awesome-monash-tools@latest", "serve", "all"]
 - 本工具从不要求输入密码。Moodle 与 OnTrack 的登录发生在真实的 Chrome 窗口里。
 - Gmail 只申请 `gmail.readonly`；可随时在 <https://myaccount.google.com/permissions> 撤销。
 - 没有埋点、没有远端日志、中间没有第三方服务。
-- 输出本身就是敏感信息（成绩、反馈、邮件），转述时请自行判断。
+- 输出本身就是敏感信息（成绩、反馈、邮件、考勤），转述时请自行判断。
+- 签到是唯一的写入：需要 `attendance_checkin` 且 `submit: true`，记录会落到你的学生账号上。
 - 高级用户可用环境变量覆盖：`ED_API_TOKEN`、`MOODLE_COOKIE`、`ONTRACK_REFRESH_TOKEN`、`GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`。
 
 ## 🗂 仓库结构
@@ -269,7 +282,7 @@ npm run dev -- status
 
 ## 🤝 参与贡献
 
-- **加工具：** 保持只读、补 zod schema、标注 `readOnlyHint`、报错必须给下一步。
+- **加工具：** 优先只读；任何写入必须显式、带标注，并且中英双语文档同步。
 - **加数据源：** 照 `src/ed/` 的结构（client → tools → server），并在 [docs/auth.md](docs/auth.md) 与中文版里补认证说明。
 - **改文档：** `README.md` 与 `README.zh-CN.md`、`docs/` 的中英两版要同步。
 - 提交 PR 前先跑 `npm run check && npm run smoke`。

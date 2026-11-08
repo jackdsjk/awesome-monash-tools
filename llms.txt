@@ -1,12 +1,12 @@
 # Awesome Monash Tools
 
-> Agent-native MCP servers for Monash University. Ed, Moodle, Gmail and OnTrack, exposed as 22 read-only tools for Claude Code, Cursor, Codex, DeepSeek Harness and any MCP host.
+> Agent-native MCP servers for Monash University. Ed, Moodle, Gmail, OnTrack and the attendance portal, exposed as 25 tools for Claude Code, Cursor, Codex, DeepSeek Harness and any MCP host.
 
 ## What it is
 
-- Four stdio MCP servers (`ed`, `moodle`, `gmail`, `ontrack`) plus one combined server (`all`).
+- Five stdio MCP servers (`ed`, `moodle`, `gmail`, `ontrack`, `attendance`) plus one combined server (`all`).
 - A CLI for authentication: `awesome-monash login <source>`, `status`, `serve`.
-- Read-only by construction: no submit, no post, no send, no delete.
+- Read-only by default: the only write is `attendance_checkin` with `submit: true`, plus a local file from `ontrack_download`.
 - Local-only: credentials in `~/.config/awesome-monash-tools/credentials.json` (0600), no server, no telemetry.
 
 ## Who it is for
@@ -40,9 +40,11 @@ Or install once: `npm install -g awesome-monash-tools`.
 | Moodle | `npx -y awesome-monash-tools@latest serve moodle` |
 | Gmail | `npx -y awesome-monash-tools@latest serve gmail` |
 | OnTrack | `npx -y awesome-monash-tools@latest serve ontrack` |
+| Attendance | `npx -y awesome-monash-tools@latest serve attendance` |
 
 ## Constraints
 
 - Unofficial, not affiliated with Monash University.
 - Node.js 20.11+; Google Chrome only for the two SSO logins.
-- No write access, no remote service, no credential sharing.
+- Attendance check-in is the only write, and it must be explicit.
+- No remote service and no credential sharing.

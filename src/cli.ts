@@ -10,20 +10,21 @@ import { VERSION } from "./core/mcp.js";
 import { EdClient, isEdRegion } from "./ed/client.js";
 import { GmailClient } from "./gmail/client.js";
 import { loopbackLogin } from "./gmail/oauth.js";
+import { AttendanceClient, DEFAULT_ATTENDANCE_BASE_URL, type AttendanceCookie } from "./attendance/client.js";
 import { MoodleClient } from "./moodle/client.js";
 import { OnTrackClient } from "./ontrack/client.js";
 
-const SOURCES = ["ed", "moodle", "gmail", "ontrack"] as const;
+const SOURCES = ["ed", "moodle", "gmail", "ontrack", "attendance"] as const;
 type Source = (typeof SOURCES)[number];
 
 const HELP = `
 awesome-monash-tools v${VERSION}
 
 Usage:
-  awesome-monash login <ed|moodle|gmail|ontrack>   Connect one source
+  awesome-monash login <ed|moodle|gmail|ontrack|attendance>   Connect one source
   awesome-monash logout <source|all>               Forget saved credentials
   awesome-monash status [--json]                   Show what is connected
-  awesome-monash serve <ed|moodle|gmail|ontrack|all>  Run an MCP server on stdio
+  awesome-monash serve <ed|moodle|gmail|ontrack|attendance|all>  Run an MCP server on stdio
 
 Login options:
   --token <token>            Ed API token (default: $ED_API_TOKEN)
@@ -118,6 +119,8 @@ async function login(source: string | undefined, values: LoginValues): Promise<v
       return loginGmail(values);
     case "ontrack":
       return loginOnTrack(values);
+    case "attendance":
+      return loginAttendance(values);
   }
 }
 
@@ -242,6 +245,44 @@ async function loginOnTrack(values: LoginValues): Promise<void> {
   }
 }
 
+async function loginAttendance(values: LoginValues): Promise<void> {
+  const baseUrl = (values["base-url"] ?? DEFAULT_ATTENDANCE_BASE_URL).replace(/\/+$/, "");
+  const browser = await launchChrome(profileDir("attendance"));
+  try {
+    const page = browser.pages()[0] ?? (await browser.newPage());
+    await page.goto(`${baseUrl}/student/`, { waitUntil: "domcontentloaded", timeout: 60_000 }).catch(() => undefined);
+    console.log("Finish the Monash SSO login in the Chrome window; the attendance cookies are saved automatically.");
+
+    const deadline = Date.now() + 5 * 60_000;
+    let last = "no StudentFedAuth cookie yet";
+    while (Date.now() < deadline) {
+      const cookies = (await browser.cookies(baseUrl).catch(() => []))
+        .filter((cookie) => cookie.domain.endsWith("monash.edu.my"))
+        .map((cookie) => ({ ...cookie, sameSite: cookie.sameSite ?? "Lax" })) as AttendanceCookie[];
+
+      if (cookies.some((cookie) => /^StudentFedAuth/i.test(cookie.name))) {
+        const onPortal = !/okta\.com|microsoftonline\.com/i.test(page.url());
+        const body = await page.locator("body").innerText().catch(() => "");
+        if (onPortal && /attendance/i.test(body)) {
+          await browser.close().catch(() => undefined);
+          const valid = await new AttendanceClient({ baseUrl, cookies }).validate().catch(() => false);
+          if (valid) {
+            await writeCredential("attendance", { baseUrl, cookies, savedAt: new Date().toISOString() });
+            console.log(`Attendance connected: ${cookies.length} cookies saved for ${baseUrl}.`);
+            return;
+          }
+          last = "cookies captured, but the portal still rejected them";
+        }
+      }
+      if (browser.pages().length === 0) break;
+      await sleep(1_500);
+    }
+    fail("Attendance login timed out.", `Last check: ${last}. Wait until the Units page loads, then run the login again.`);
+  } finally {
+    await browser.close().catch(() => undefined);
+  }
+}
+
 async function logout(source: string | undefined): Promise<void> {
   if (!source) fail("Choose a source to log out of.", "Example: awesome-monash logout ed");
   const targets = source === "all" ? [...SOURCES] : isSource(source) ? [source] : [];
@@ -249,7 +290,7 @@ async function logout(source: string | undefined): Promise<void> {
 
   for (const target of targets) {
     await deleteCredential(target);
-    if (target === "moodle" || target === "ontrack") {
+    if (target === "moodle" || target === "ontrack" || target === "attendance") {
       await rm(profileDir(target), { recursive: true, force: true }).catch(() => undefined);
     }
     console.log(`${sourceLabel(target)} signed out.`);
@@ -307,6 +348,13 @@ async function probeSource(source: Source): Promise<{ source: Source; connected:
         const account = await new OnTrackClient({ baseUrl, username, refreshToken }).whoami();
         return { source, connected: true, summary: `${account.username} (id ${account.userId})` };
       }
+      case "attendance": {
+        const stored = await readCredential<{ baseUrl?: string; cookies?: AttendanceCookie[] }>("attendance");
+        if (!stored?.cookies?.length) return { source, connected: false, summary: "" };
+        const baseUrl = process.env.ATTENDANCE_BASE_URL ?? stored.baseUrl ?? DEFAULT_ATTENDANCE_BASE_URL;
+        const ok = await new AttendanceClient({ baseUrl, cookies: stored.cookies }).validate();
+        return { source, connected: ok, summary: ok ? new URL(baseUrl).host : "session expired" };
+      }
     }
   } catch (error) {
     return { source, connected: false, summary: describe(error).split("\n")[0] };
@@ -323,10 +371,16 @@ interface LoginValues {
   port?: string;
 }
 
+interface PageLike {
+  goto(url: string, options?: Record<string, unknown>): Promise<unknown>;
+  url(): string;
+  locator(selector: string): { innerText(): Promise<string>; count(): Promise<number> };
+}
+
 interface BrowserContextLike {
-  pages(): Array<{ goto(url: string, options?: Record<string, unknown>): Promise<unknown> }>;
-  newPage(): Promise<{ goto(url: string, options?: Record<string, unknown>): Promise<unknown> }>;
-  cookies(url?: string): Promise<Array<{ name: string; value: string; domain: string; expires: number }>>;
+  pages(): PageLike[];
+  newPage(): Promise<PageLike>;
+  cookies(url?: string): Promise<Array<{ name: string; value: string; domain: string; path: string; expires: number; httpOnly: boolean; secure: boolean; sameSite?: "Strict" | "Lax" | "None" }>>;
   close(): Promise<void>;
 }
 

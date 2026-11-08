@@ -175,13 +175,36 @@ Run `npx awesome-monash-tools login ed` to connect it.
 
 把文件写到 `~/.config/awesome-monash-tools/downloads/`，返回 `{ path, bytes, contentType }`。文件名会做安全处理，路径必须是 API 相对路径。
 
+## Attendance
+
+### `attendance_status`
+
+无参数。探测保存的签到 cookie，返回 `{ connected, hint }`。
+
+### `attendance_sessions`
+
+无参数。返回 `[{ course, session, days }]`：门户里这个账号的 workshop、tutorial、lab，以及它们出现在哪些日期。
+
+### `attendance_checkin`
+
+| 参数 | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| `course` | string | 必填 | 单元代码，如 `FIT1045` |
+| `session` | string | 必填 | 班次标签，如 `Workshop 3` |
+| `code` | string | 必填 | 课上老师给出的签到码 |
+| `submit` | boolean | false | `false` 只填入；`true` 才真正提交并记录考勤 |
+
+返回 `{ status, course, session, message, entryUrl?, pageText? }`，status 为 `filled`、`submitted`、`inactive`（签到窗口未开）或 `not_found`（没有匹配的 Entry 链接）。
+
+`attendance_checkin` 是本包唯一会写远端服务的工具。传 `submit: true` 之前，请先和用户确认课程、班次和签到码。
+
 ## 工具标注
 
 每个工具都带 MCP 提示：
 
 | 工具 | `readOnlyHint` | `openWorldHint` |
 |---|---|---|
-| 除 `ontrack_download` 外的所有工具 | true | true |
-| `ontrack_download` | false | true |
+| `attendance_checkin`、`ontrack_download` | false | true |
+| 其余所有工具 | true | true |
 
-没有破坏性工具；宿主仍可能根据这些提示要求确认。
+没有破坏性工具。`attendance_checkin` 会写入考勤、`ontrack_download` 会写本地文件，宿主仍可能根据这些提示要求确认。

@@ -19,7 +19,7 @@ npm run dev -- status
 ## Layout
 
 - `src/core/` — config paths, credential store, HTTP retry wrapper, MCP result helpers.
-- `src/<source>/` — client (HTTP/scraping), tools (MCP registration), `server.ts` (bin).
+- `src/<source>/` — client (HTTP/scraping), tools (MCP registration), `server.ts` (bin). Attendance drives Chrome through `playwright-core`.
 - `src/cli.ts` — `login`, `logout`, `status`, `serve`.
 - `src/all.ts` — combined server.
 - `scripts/smoke.mjs` — protocol-level smoke test (spawns each bin).
@@ -30,7 +30,7 @@ npm run dev -- status
 - ESM + NodeNext, strict TypeScript, two-space indentation.
 - Tool names are `source_action` and every schema uses zod.
 - Every thrown error must become an `AmtError` with a hint, so MCP clients see the next command to run.
-- New tools must be annotated with `readOnlyHint`; this project has no write path.
+- Prefer read-only tools. The only write is `attendance_checkin` (submits only with `submit: true`); annotate any write explicitly and document it in both languages.
 - Tests are colocated (`src/**/*.test.ts`) and use a fake `fetch`; never call real services in tests.
 
 ## Security

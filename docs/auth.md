@@ -140,8 +140,35 @@ Troubleshooting:
 
 ---
 
+## Attendance
+
+The Monash attendance portal (`attendance.monash.edu.my`) is a separate WebForms site with its own SSO cookie, `StudentFedAuth`.
+
+`login attendance`:
+
+1. Opens a persistent Chrome profile at `profiles/attendance`.
+2. Navigates to `https://attendance.monash.edu.my/student/`.
+3. Waits for you to finish the Monash SSO login.
+4. Captures every `*.monash.edu.my` cookie once `StudentFedAuth` appears.
+5. Re-opens the portal in a headless browser and only saves the cookies if the Units page actually loads.
+
+Notes:
+
+- The portal's TLS chain is not in Node's bundled CA store, so every attendance call drives a real Chrome instead of plain `fetch`.
+- The session is the same one a browser would have; when it expires, every attendance tool returns a reconnect hint.
+- `attendance_checkin` fills the code and, only with `submit: true`, submits it. That is the only write in this package.
+
+Troubleshooting:
+
+| Symptom | Cause |
+|---|---|
+| Login times out | The Units page never loaded, or SSO opened in another window |
+| `Attendance rejected the saved session` | `StudentFedAuth` expired; log in again |
+| `Could not start Chrome` | Chrome is not installed; the portal needs a real browser |
+
 ## What is never done
 
 - No password prompt, no credential forwarding, no scraping of the password field.
 - No tokens in logs, error messages or MCP output.
 - No background process, daemon or LaunchAgent is installed.
+- Attendance is the only write, and it is gated behind `submit: true`.
